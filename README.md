@@ -1,2 +1,2 @@
 # claims-token
-reference implmentation of the claims token extension to ERC20
+reference implementation of the claims token extension to ERC20
