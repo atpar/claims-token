@@ -92,7 +92,7 @@ contract ClaimsToken is IClaimsToken, ERC20, ERC20Detailed {
 	}
 
 	/**
-	 * @dev Increment cumulative received funds by new received funds. 
+	 * @dev Increments cumulative received funds by new received funds. 
 	 * Called when ClaimsToken receives funds.
 	 * @param _value Amount of tokens / Ether received
 	 */
@@ -128,8 +128,10 @@ contract ClaimsToken is IClaimsToken, ERC20, ERC20Detailed {
 		claimedFunds[_address] = claimedFunds[_address].add(unprocessedFunds);
 	}
 
-		/**
-	 * @dev Withdraws available funds for user and returns the withdrawable amount.
+	/**
+	 * @dev Sets claimed but not yet withdrawn funds to 0,
+	 * marks total received funds as processed and 
+	 * returns the withdrawable amount for a user.
 	 * @return A uint256 representing the withdrawable funds
 	 */
 	function _prepareWithdraw() 
