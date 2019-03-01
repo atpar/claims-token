@@ -11,13 +11,12 @@ created: 2019-03-01
 require: ERC-20 (#20), ERC-223 (#223)
 
 ## Simple Summary
-A standard for a token that represents claims on future cash flow of an asset. The standard can distribute regular or irregular recurring payments among token holders efficiently. The token holders are seen as fractional owners of future cash flow. The standard is designed as an extension to ERC20-based token contracts.
-It provides an interface to deposit funds to be distributed, to get information about available funds and to withdraw funds a token holder is entitled to.
+A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. 
 
 ## Abstract
-This standard proposes an efficient solution for distributing recurring payments such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. The payments can be in Ether or ERC20 tokens and are stored in the token's "fund". Holders of a claims token can transfer their tokens at any time and can still be sure that their past claims to the cash flow of the token will be honored.
+This standard proposes an efficient solution for distributing recurring payments such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. The token holders are seen as fractional owners of future cash flow. The payments can be in Ether or ERC20 tokens and are stored in the token's "fund". Holders of a claims token can transfer their tokens at any time and can still be sure that their past claims to the cash flow of the token will be honored. The interface provides methods to deposit funds to be distributed, to get information about available funds and to withdraw funds a token holder is entitled to.
 
-The standard can handle funds in Ether or in ERC223 compatible tokens.
+This standard can handle funds in Ether or in ERC223 compatible tokens.
 
 This standard is backwards compatible with ERC20 (#20) and can easily be extended to be compatible with ERC-1400 (#1411) security token standards.
 
@@ -57,17 +56,36 @@ Now Alice sends 50 tokens to Bob. Shortly after the bond yield another 10 Ether.
 ### Methods
 
 #### default function
+The default function behaves differently if Ether or tokens are sent to the contract.
+
+
 In case of funds in Ether any Ether sent to the contract will be added to the fund by the default function.
+
+
 In case of funds in ERC20/223 tokens the token that is registered will be added to the fund by the default function when it's sent to the contract.
 
-#### availableFunds
-Returns the amount of funds that can be withdrawn by current or former token holder.
-
-#### withdrawFunds
-Withdraws the funds owned by the messa
 
 #### totalReceivedFunds
 The monotonuously rising cumulative sum of funds received since the creation of the token. This number is the amount that the contract has had available for distribution so far.
+
+```
+totalReceivedFunds () external view returns (uint256);
+```
+
+#### availableFunds
+Returns the amount of funds that can be withdrawn by a current or former token holder given as the `_address` parameter.
+
+```
+availableFunds(address _address) external view returns (uint256);
+```
+
+#### withdrawFunds
+Withdraws the funds the message sender is entitled to at the time of execution of the function.
+
+```
+function withdrawFunds() external payable;
+```
+
 
 ### fundsToken
 A field that stores a reference to the token used for the funds. In case of funds in Ether, the field must be set to `0x0`.
@@ -77,19 +95,37 @@ A field that stores a reference to the token used for the funds. In case of fund
 /// @title IERCxxxx Claims Token Standard
 /// @dev See https://github.com/atpar/claims-token
 
-interface IERCxxxx is IERC20 {
+interface IClaimsToken {
+
+  event Deposit(uint256 fundsDeposited);
+  
+  /**
+   * @dev Withdraws available funds for user.
+   */
+  function withdrawFunds() external payable;
+
+  /**
+   * @dev Returns the amount of funds a given address is able to withdraw currently.
+   * @param _address Address of ClaimsToken holder
+   * @return A uint256 representing the available funds for a given account
+   */
+  function availableFunds(address _address) external view returns (uint256);
+
+  /**
+   * @dev Get cumulative funds received by ClaimsToken.
+   * @return A uint256 representing the total funds received by ClaimsToken
+   */
+  function totalReceivedFunds () external view returns (uint256);
 }
+
 ```
-## implementation
+## Implementation
 
-There are two reference implementations. The first is for funds denoted in Ether and the second is for funds denoted in ERC20/ERC223 compatible tokens.
+The reference implementation consists of the accounting contract and two specializations. The first is for funds denoted in Ether and the second is for funds denoted in ERC20/ERC223 compatible tokens.
 
-* [Reference implementation for cash flow in Ether](https://github.com/atpar/claims-token)
-* [Reference implementation for cash flow in a ERC20/ERC223 token](https://github.com/atpar/claims-token)
+* [Reference implementation for cash flow in ERC20/ERC223 tokens](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
+* [Reference implementation for cash flow in a Ethern](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
 
 ## Attribution
-The idea for the implementation of the claims token goes back to work originally done by Stefan George, JosephC, Milad Mostavi and Popra and was used in the Tokit SingularDTVFund contract.
-
-## References
-...
+The idea for the implementation of the claims token goes back to work originally done by @Georgi87, @ethers, @miladmostavi and @popra and was used in the [Tokit SingularDTVFund](https://github.com/Digital-Mob/singulardtv-tokitio-contracts) contracts.
 
