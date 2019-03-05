@@ -140,7 +140,7 @@ The reference implementation consists of the accounting contract and two special
 The claims token is realized by reimplementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
 
 ### Calculation of the available funds
-In the following calculations "claimed " means that funds have been processed and are safe to be withdrawn by an authorized user. The term "unclaimable" means that an amount has already been processed and cannot be claimed by a user anymore. 
+The efficency of the solutoin is achieved by tracking 2 values for each token holder: `claimedFunds` and `processedFunds`. By updating these at transfer events and postponing calculation of available funds to withdrawal time, this implementation achieves very low gas cost for both transfers and withdrawals.
 
 __Terms:__  
 `balance_A` -> Balance of token owner A  
