@@ -81,7 +81,7 @@ In case of funds in ERC20/223 tokens the token that is registered will be added 
 The monotonously rising cumulative sum of funds received since the creation of the token. This number is the amount that the contract has had available for distribution so far.
 
 ```
-totalReceivedFunds () external view returns (uint256);
+totalReceivedFunds() external view returns (uint256);
 ```
 
 #### availableFunds
@@ -167,7 +167,7 @@ The available funds are calculated as the sum of the unprocessed funds and the c
 Total supply: 100 tokens  
 Initial distribution: Alice owns 100 token and Bob owns 0 tokens. 0 funds received.
 
-Step | balance A | balance B | funds available A | funds available B | funds received | event
+Step | balance Alice | balance Bob | funds available Alice | funds available Bob | funds received | event
 ---- | --------- | --------- | ----------------- | ----------------- | -------------- | ---
 0    | 100       | 0         | 0                 | 0                 | 0              | token creation
 1    | 100       | 0         | 20                | 0                 | 20             | 20 Ether sent to the contract
