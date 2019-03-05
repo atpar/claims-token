@@ -1,6 +1,5 @@
-# DRAFT! Claims Token EIP
-
 ---
+
 eip: ERC-xxxx  
 title: Claims Token Standard  
 author: Johannes Pfeffer ([@jo-tud](https://github.com/jo-tud)), Johannes Escherich ([@jo-es](https://github.com/jo-es)), ...  
@@ -10,17 +9,20 @@ type: Standards Track
 category: ERC  
 created: 2019-03-01  
 require: ERC-20 (#20), ERC-223 (#223)  
+
 ---
+
+# DRAFT! Claims Token EIP
 
 ## Simple Summary
 A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. 
 
-* Efficient handling of fractional ownership of cash-flow claims
-* Scales well to a large number of token holders and frequent transfers
-* Takes care of claims to past cash flows by dynamically accounting for token transfers
-* Fully ERC-20 compliant
-* Supports funds in Ether or in ERC223 compatible tokens
-* Total supply must be immutable
+- Efficient handling of fractional ownership of cash-flow claims
+- Scales well to a large number of token holders and frequent transfers
+- Takes care of claims to past cash flows by dynamically accounting for token transfers
+- Fully ERC-20 compliant
+- Supports funds in Ether or in ERC223 compatible tokens
+- Total supply must be immutable
 
 
 ## Abstract
@@ -39,20 +41,20 @@ In the DeFi and OpenFinance ecosystem assets such as debt positions, loans, deri
 
 The following requirements MUST be met in order to use the contract.
 
-* The extended token MUST be ERC-20 compatible
-* The token in which funds are deposited MUST be specified before the first deposit.
-* The extended token MUST have a fixed total supply. After the first token transfer the total supply MUST NOT be changed.
-* If the funds are payed in ERC20 tokens (and not in Ether), this token MUST comply to ERC223
+- The extended token MUST be ERC-20 compatible
+- The token in which funds are deposited MUST be specified before the first deposit.
+- The extended token MUST have a fixed total supply. After the first token transfer the total supply MUST NOT be changed.
+- If the funds are payed in ERC20 tokens (and not in Ether), this token MUST comply to ERC223
 
 ### Claims token requirements
 
 Executing tokenized financial contracts on a public ledger requires standards for distribution of cash flow incured by the asset. In discussions with issuers the following requirements have been collected.
 
-* MUST be ERC-20 compatible.
-* MUST support a large number of token holders that hold claims on an assets cash flow
-* MUST support efficient withdrawal of available funds
-* MUST support efficient addition of funds to be distributed
-* clients/token holders MUST be able to observe new deposits to the fund
+- MUST be ERC-20 compatible.
+- MUST support a large number of token holders that hold claims on an assets cash flow
+- MUST support efficient withdrawal of available funds
+- MUST support efficient addition of funds to be distributed
+- clients/token holders MUST be able to observe new deposits to the fund
 
 ## Rationale
 Sending cash flow to a large group of token holders whenever it is received is limited by gas consumption. Thus, a solution must be used in which token holders actively withdraw the cumulative funds that they have a claim on. A token holder must be able to withdraw funds she has a claim on at any time. It must also be possible to transfer tokens at any time and the already accrued claims must still be honored. This requires some background accounting to be done in the transfer functions. The claims token standard solves this elegantly.
@@ -134,11 +136,11 @@ interface IClaimsToken {
 
 The reference implementation consists of the accounting contract and two specializations. The first is for funds denoted in Ether and the second is for funds denoted in ERC20/ERC223 compatible tokens.
 
-* [Reference implementation for cash flow in ERC20/ERC223 tokens](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
-* [Reference implementation for cash flow in a Ethern](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
+- [Reference implementation for cash flow in ERC20/ERC223 tokens](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
+- [Reference implementation for cash flow in a Ethern](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
 
 The claims token is realized by reimplementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
 
 ## Attribution
-The idea for the implementation of the claims token goes back to work originally done by @Georgi87, @ethers, @miladmostavi and @popra and was used in the [Tokit SingularDTVFund](https://github.com/Digital-Mob/singulardtv-tokitio-contracts) contracts.
+The idea for the implementation of the claims token goes back to work originally done by [@Georgi87](https://github.com/Georgi87), [@ethers](https://github.com/ethers), [@miladmostavi](https://github.com/miladmostavi) and [@popra](https://github.com/popra) and was used in the [Tokit SingularDTVFund](https://github.com/Digital-Mob/singulardtv-tokitio-contracts) contracts.
 
