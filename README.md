@@ -165,7 +165,7 @@ The available funds are calculated as the sum of the unprocessed funds and the c
 
 ## Example
 Total supply: 100 tokens  
-Initial distribution: Alice owns 100 token and Bob owns 0 tokens. 0 funds received.
+Initial distribution: Alice owns 100 tokens and Bob owns 0 tokens. 0 funds received.
 
 Step | balance Alice | balance Bob | funds available Alice | funds available Bob | funds received | event
 ---- | --------- | --------- | ----------------- | ----------------- | -------------- | ---
