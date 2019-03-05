@@ -26,6 +26,8 @@ A standard for a token that represents claims on future cash flow of an asset su
 
 
 ## Abstract
+![The Claims Token](res/ClaimsToken.png)
+
 This standard proposes an efficient solution for distributing recurring payments such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. The token holders are seen as fractional owners of future cash flow. The payments can be in Ether or ERC20 tokens and are stored in the token's "fund". Holders of a claims token can transfer their tokens at any time and can still be sure that their past claims to the cash flow of the token will be honored. The interface provides methods to deposit funds to be distributed, to get information about available funds and to withdraw funds a token holder is entitled to.
 
 This standard can handle funds in Ether or in ERC223 compatible tokens.
@@ -79,7 +81,7 @@ In case of funds in ERC20/223 tokens the token that is registered will be added 
 The monotonously rising cumulative sum of funds received since the creation of the token. This number is the amount that the contract has had available for distribution so far.
 
 ```
-totalReceivedFunds () external view returns (uint256);
+totalReceivedFunds() external view returns (uint256);
 ```
 
 #### availableFunds
@@ -165,7 +167,7 @@ The available funds are calculated as the sum of the unprocessed funds and the c
 Total supply: 100 tokens  
 Initial distribution: Alice owns 100 token and Bob owns 0 tokens. 0 funds received.
 
-Step | balance A | balance B | funds available A | funds available B | funds received | event
+Step | balance Alice | balance Bob | funds available Alice | funds available Bob | funds received | event
 ---- | --------- | --------- | ----------------- | ----------------- | -------------- | ---
 0    | 100       | 0         | 0                 | 0                 | 0              | token creation
 1    | 100       | 0         | 20                | 0                 | 20             | 20 Ether sent to the contract
