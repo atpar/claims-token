@@ -48,7 +48,7 @@ The following requirements MUST be met in order to use the contract.
 
 ### Claims token requirements
 
-Executing tokenized financial contracts on a public ledger requires standards for distribution of cash flow incured by the asset. In discussions with issuers the following requirements have been collected.
+Executing tokenized financial contracts on a public ledger requires standards for distribution of cash flow incurred by the asset. In discussions with issuers the following requirements have been collected.
 
 - MUST be ERC-20 compatible.
 - MUST support a large number of token holders that hold claims on an assets cash flow
@@ -76,7 +76,7 @@ In case of funds in ERC20/223 tokens the token that is registered will be added 
 
 
 #### totalReceivedFunds
-The monotonuously rising cumulative sum of funds received since the creation of the token. This number is the amount that the contract has had available for distribution so far.
+The monotonously rising cumulative sum of funds received since the creation of the token. This number is the amount that the contract has had available for distribution so far.
 
 ```
 totalReceivedFunds () external view returns (uint256);
@@ -135,17 +135,17 @@ interface IClaimsToken {
 The reference implementation consists of the accounting contract and two specializations. The first is for funds denoted in Ether and the second is for funds denoted in ERC20/ERC223 compatible tokens.
 
 - [Reference implementation for cash flow in ERC20/ERC223 tokens](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
-- [Reference implementation for cash flow in a Ethern](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
+- [Reference implementation for cash flow in Ether](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
 
-The claims token is realized by reimplementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
+The claims token is realized by implementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
 
 ### Calculation of the available funds
-The efficency of the solutoin is achieved by tracking 2 values for each token holder: `claimedFunds` and `processedFunds`. By updating these at transfer events and postponing calculation of available funds to withdrawal time, this implementation achieves very low gas cost for both transfers and withdrawals.
+The high efficiency of the solution is achieved by tracking 2 values for each token holder: `claimedFunds` and `processedFunds`. By updating these at transfer events and postponing calculation of available funds to withdrawal time, this implementation achieves very low gas cost for both transfers and withdrawals.
 
 __Terms:__  
 `balance_A` -> Balance of token owner A  
 `claimedFunds_A` -> Amount of funds owned by A that is already claimed  
-`receivedFunds` -> Total cummulative sum of funds received for distribution (monotonously rising)  
+`receivedFunds` -> Total cumulative sum of funds received for distribution (monotonously rising)  
 `processedFunds_A`-> This value tracks the amount of funds for which a user has already claimed their portion of the cash flow  
 `unprocessedFunds_A` -> Represents the amount of funds for which a user holds a claim but that were not yet processed  
 `ownershipFraction_A` -> Percentage of cash-flow that can be claimed by A  
@@ -153,10 +153,10 @@ __Terms:__
 `availableFunds_A` -> The amount of funds token holder A can withdraw  
 
 __Calculations:__  
-The ownership fraction is the balance relative to the total suplly.  
+The ownership fraction is the balance relative to the total supply.  
 `ownershipFraction_A = balance_A/totalSupply`
 
-The available funds are calculated as the sum of the unprocessed funds and the claimed funds. Unprocecced funds are calculated by multiplying the ownership fraction with the difference between the total received funds and the fund that have already been considered for a user (`processedFunds`)  
+The available funds are calculated as the sum of the unprocessed funds and the claimed funds. Unprocessed funds are calculated by multiplying the ownership fraction with the difference between the total received funds and the fund that have already been considered for a user (`processedFunds`)  
 
 `unprocessedFunds_A = ownershipFraction_A * (receivedFunds-processedFunds_A)`  
 `availableFunds_A = unprocessedFunds_A + claimedFunds_A`  
