@@ -139,6 +139,28 @@ The reference implementation consists of the accounting contract and two special
 
 The claims token is realized by reimplementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
 
+### Calculation of the available funds
+In the following calculations "claimed " means that funds have been processed and are safe to be withdrawn by an authorized user. The term "unclaimable" means that an amount has already been processed and cannot be claimed by a user anymore. 
+
+__Terms:__  
+`balance_A` -> Balance of token owner A  
+`claimedFunds_A` -> Amount of funds owned by A that is already claimed  
+`receivedFunds` -> Total cummulative sum of funds received for distribution (monotonously rising)  
+`processedFunds_A`-> This value tracks the amount of funds for which a user has already claimed their portion of the cash flow  
+`unprocessedFunds_A` -> Represents the amount of funds for which a user holds a claim but that were not yet processed  
+`ownershipFraction_A` -> Percentage of cash-flow that can be claimed by A  
+`totalSupply`-> Total and immutable amount of minted tokens  
+`availableFunds_A` -> The amount of funds token holder A can withdraw  
+
+__Calculations:__  
+The ownership fraction is the balance relative to the total suplly.  
+`ownershipFraction_A = balance_A/totalSupply`
+
+The available funds are calculated as the sum of the unprocessed funds and the claimed funds. Unprocecced funds are calculated by multiplying the ownership fraction with the difference between the total received funds and the fund that have already been considered for a user (`processedFunds`)  
+
+`unprocessedFunds_A = ownershipFraction_A * (receivedFunds-processedFunds_A)`  
+`availableFunds_A = unprocessedFunds_A + claimedFunds_A`  
+
 ## Example
 Total supply: 100 tokens  
 Initial distribution: Alice owns 100 token and Bob owns 0 tokens. 0 funds received.
