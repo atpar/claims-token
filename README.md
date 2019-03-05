@@ -15,12 +15,12 @@ require: ERC-20 (#20), ERC-223 (#223)
 ## Simple Summary
 A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. 
 
-- Efficient handling of fractional ownership of cash-flow claims
-- Scales well to a large number of token holders and frequent transfers
-- Takes care of claims to past cash flows by dynamically accounting for token transfers
-- Fully ERC-20 compliant
-- Supports funds in Ether or in ERC223 compatible tokens
-- Total supply must be immutable
+* Efficient handling of fractional ownership of cash-flow claims
+* Scales well to a large number of token holders and frequent transfers
+* Takes care of claims to past cash flows by dynamically accounting for token transfers
+* Fully ERC-20 compliant
+* Supports funds in Ether or in ERC223 compatible tokens
+* Total supply must be immutable
 
 
 ## Abstract
