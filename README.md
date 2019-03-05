@@ -70,9 +70,7 @@ Now Alice sends 50 tokens to Bob. Shortly after the bond yield another 10 Ether.
 #### default function
 The default function behaves differently if Ether or tokens are sent to the contract.
 
-
 In case of funds in Ether any Ether sent to the contract will be added to the fund by the default function.
-
 
 In case of funds in ERC20/223 tokens the token that is registered will be added to the fund by the default function when it's sent to the contract.
 
@@ -140,6 +138,24 @@ The reference implementation consists of the accounting contract and two special
 - [Reference implementation for cash flow in a Ethern](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
 
 The claims token is realized by reimplementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
+
+## Example
+Total supply: 100 tokens  
+Initial distribution: Alice owns 100 token and Bob owns 0 tokens. 0 funds received.
+
+Step | balance A | balance B | funds available A | funds available B | funds received | event
+---- | --------- | --------- | ----------------- | ----------------- | -------------- | ---
+0    | 100       | 0         | 0                 | 0                 | 0              | token creation
+1    | 100       | 0         | 20                | 0                 | 20             | 20 Ether sent to the contract
+2    | 75        | 25        | 20                | 0                 | 20             | Alice has sent 25 tokens to Bob
+3    | 75        | 25        | 35                | 5                 | 40             | 20 Ether sent to the contract
+4    | 75        | 25        | 0                 | 5                 | 40             | Alice withdraws her funds
+5    | 75        | 25        | 12                | 9                 | 56             | 16 Ether sent to the contract
+6    | 50        | 50        | 12                | 9                 | 56             | Alice has sent 25 tokens to Bob
+7    | 50        | 50        | 16                | 13                | 64             | 8 Ether sent to the contract
+8    | 50        | 0         | 16                | 13                | 64             | Bob has sent 50 tokens to X
+
+The Claims Token accounting system works in the background to take care of the fact that Alice's claims fraction changes and Bob sends his tokens away before withdrawing his available funds.
 
 ## Attribution
 The idea for the implementation of the claims token goes back to work originally done by [@Georgi87](https://github.com/Georgi87), [@ethers](https://github.com/ethers), [@miladmostavi](https://github.com/miladmostavi) and [@popra](https://github.com/popra) and was used in the [Tokit SingularDTVFund](https://github.com/Digital-Mob/singulardtv-tokitio-contracts) contracts.
