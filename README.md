@@ -1,17 +1,27 @@
 # DRAFT! Claims Token EIP
 
-eip: ERC-xxxx
-title: Claims Token Standard
-author: Johannes Pfeffer (@jo-tud), Johannes Escherich (@jo-es), ...
-discussions-to: #xxxx
-status: Draft
-type: Standards Track
-category: ERC
-created: 2019-03-01
-require: ERC-20 (#20), ERC-223 (#223)
+---
+eip: ERC-xxxx  
+title: Claims Token Standard  
+author: Johannes Pfeffer ([@jo-tud](https://github.com/jo-tud)), Johannes Escherich ([@jo-es](https://github.com/jo-es)), ...  
+discussions-to: #xxxx  
+status: Draft  
+type: Standards Track  
+category: ERC  
+created: 2019-03-01  
+require: ERC-20 (#20), ERC-223 (#223)  
+---
 
 ## Simple Summary
 A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. 
+
+- Efficient handling of fractional ownership of cash-flow claims
+- Scales well to a large number of token holders and frequent transfers
+- Takes care of claims to past cash flows by dynamically accounting for token transfers
+- Fully ERC-20 compliant
+- Supports funds in Ether or in ERC223 compatible tokens
+- Total supply must be immutable
+
 
 ## Abstract
 This standard proposes an efficient solution for distributing recurring payments such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. The token holders are seen as fractional owners of future cash flow. The payments can be in Ether or ERC20 tokens and are stored in the token's "fund". Holders of a claims token can transfer their tokens at any time and can still be sure that their past claims to the cash flow of the token will be honored. The interface provides methods to deposit funds to be distributed, to get information about available funds and to withdraw funds a token holder is entitled to.
@@ -97,34 +107,37 @@ A field that stores a reference to the token used for the funds. In case of fund
 
 interface IClaimsToken {
 
-  event Deposit(uint256 fundsDeposited);
-  
-  /**
-   * @dev Withdraws available funds for user.
-   */
-  function withdrawFunds() external payable;
+	event Deposit(uint256 fundsDeposited);
+	
+	/**
+	 * @dev Withdraws available funds for user.
+	 */
+	function withdrawFunds() external payable;
 
-  /**
-   * @dev Returns the amount of funds a given address is able to withdraw currently.
-   * @param _address Address of ClaimsToken holder
-   * @return A uint256 representing the available funds for a given account
-   */
-  function availableFunds(address _address) external view returns (uint256);
+	/**
+	 * @dev Returns the amount of funds a given address is able to withdraw currently.
+	 * @param _forAddress Address of ClaimsToken holder
+	 * @return A uint256 representing the available funds for a given account
+	 */
+	function availableFunds(address _forAddress) external view returns (uint256);
 
-  /**
-   * @dev Get cumulative funds received by ClaimsToken.
-   * @return A uint256 representing the total funds received by ClaimsToken
-   */
-  function totalReceivedFunds () external view returns (uint256);
+	/**
+	 * @dev Get cumulative funds received by ClaimsToken.
+	 * @return A uint256 representing the total funds received by ClaimsToken
+	 */
+	function totalReceivedFunds () external view returns (uint256);
 }
 
 ```
+
 ## Implementation
 
 The reference implementation consists of the accounting contract and two specializations. The first is for funds denoted in Ether and the second is for funds denoted in ERC20/ERC223 compatible tokens.
 
 * [Reference implementation for cash flow in ERC20/ERC223 tokens](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
 * [Reference implementation for cash flow in a Ethern](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
+
+The claims token is realized by reimplementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
 
 ## Attribution
 The idea for the implementation of the claims token goes back to work originally done by @Georgi87, @ethers, @miladmostavi and @popra and was used in the [Tokit SingularDTVFund](https://github.com/Digital-Mob/singulardtv-tokitio-contracts) contracts.
