@@ -37,18 +37,16 @@ This standard is backwards compatible with ERC20 (#20) and can easily be extende
 ## Motivation
 In the DeFi and OpenFinance ecosystem assets such as debt positions, loans, derivatives and bonds are emerging. These assets incur future cash flows, e.g. repayments or dividends. Currently there is no standard for efficiently distributing claims on future cash flow of financial contracts among token holders.
 
+## Rationale
+Sending cash flow to a large group of token holders whenever it is received is limited by gas consumption. Thus, a solution must be used in which token holders actively withdraw the cumulative funds that they have a claim on. A token holder must be able to withdraw funds she has a claim on at any time. It must also be possible to transfer tokens at any time and the already accrued claims must still be honored. This requires some background accounting to be done in the transfer functions. The claims token standard solves this elegantly.
+
+Example: A bond is represented by 100 tokens. Alice owns all 100 of these tokens and Bob own zero. The bond yields 10 Ether. Alice has a claim on 100% of that cash flow because when the 10 Ether were received she owned all the tokens. She decides to not withdraw the tokens but wait until more has accumulated.
+
+Now Alice sends 50 tokens to Bob. Shortly after the bond yield another 10 Ether. Now Alice has is entitled to 15 Ether and Bob to 5 Ether. The ownership history is honored and Alice doesn't need to withdraw before she transfers the tokens.
+
 ## Requirements
 
-### Usage requirements
-
-The following requirements MUST be met in order to use the contract.
-
-- The extended token MUST be ERC-20 compatible
-- The token in which funds are deposited MUST be specified before the first deposit.
-- The extended token MUST have a fixed total supply. After the first token transfer the total supply MUST NOT be changed.
-- If the funds are payed in ERC20 tokens (and not in Ether), this token MUST comply to ERC223
-
-### Claims token requirements
+### Requirements a claims token should fulfill
 
 Executing tokenized financial contracts on a public ledger requires standards for distribution of cash flow incurred by the asset. In discussions with issuers the following requirements have been collected.
 
@@ -58,12 +56,16 @@ Executing tokenized financial contracts on a public ledger requires standards fo
 - MUST support efficient addition of funds to be distributed
 - clients/token holders MUST be able to observe new deposits to the fund
 
-## Rationale
-Sending cash flow to a large group of token holders whenever it is received is limited by gas consumption. Thus, a solution must be used in which token holders actively withdraw the cumulative funds that they have a claim on. A token holder must be able to withdraw funds she has a claim on at any time. It must also be possible to transfer tokens at any time and the already accrued claims must still be honored. This requires some background accounting to be done in the transfer functions. The claims token standard solves this elegantly.
+### Requirements to observe when using the standard
 
-Example: A bond is represented by 100 tokens. Alice owns all 100 of these tokens and Bob own zero. The bond yields 10 Ether. Alice has a claim on 100% of that cash flow because when the 10 Ether were received she owned all the tokens. She decides to not withdraw the tokens but wait until more has accumulated.
+The following requirements MUST be met in order to use the claims token standard.
 
-Now Alice sends 50 tokens to Bob. Shortly after the bond yield another 10 Ether. Now Alice has is entitled to 15 Ether and Bob to 5 Ether. The ownership history is honored and Alice doesn't need to withdraw before she transfers the tokens.
+- The extended token MUST be ERC-20 compatible
+- The token in which funds are deposited MUST be specified before the first deposit.
+- The extended token MUST have a fixed total supply. After the first token transfer the total supply MUST NOT be changed.
+- IF the funds are payed in ERC20 tokens (and not in Ether), this token MUST comply to ERC223
+
+
 
 ## Specification
 
