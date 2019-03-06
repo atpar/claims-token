@@ -20,7 +20,6 @@ A standard for a token that represents claims on future cash flow of an asset su
 - Efficient handling of fractional ownership of cash-flow claims
 - Correctly distributes cash flow honoring all token transfers
 - Scales well to many token holders and frequent transfers
-- Takes care of claims to past cash flows by dynamically accounting for token transfers
 - Fully ERC-20 compliant
 - Supports funds in Ether or in ERC223 compatible tokens
 - Total supply must be immutable
