@@ -127,7 +127,7 @@ interface IClaimsToken {
 	/**
 	 * @dev This event emits when funds to be deposited are sent to the token contract
 	 * @param from contains the address of the sender of the received funds
-	 * @param receivedFunds contains the amount of funds received for distribution
+	 * @param fundsReceived contains the amount of funds received for distribution
 	 */
 	event FundsReceived(address indexed from, uint256 fundsReceived);
 	
