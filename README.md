@@ -15,7 +15,7 @@ require: ERC-20 (#20), ERC-223 (#223)
 # DRAFT! Claims Token EIP
 
 ## Simple Summary
-A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. Anyone can provide funds, token holders can withdraw their claims.
+A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. Anyone can deposit funds, token holders can withdraw their claims.
 
 - ERC-20 backwards compatible
 - Supports funds in Ether or in ERC223 compatible tokens
