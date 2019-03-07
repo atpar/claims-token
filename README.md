@@ -101,13 +101,13 @@ function withdrawFunds() external payable;
 ```
 
 
-### fundsToken
+#### fundsToken
 A field that stores a reference to the token used for the funds. In case of funds in Ether, the field must be set to `0x0`.
 
-## Events
+### Events
 There is only one additional event.
 
-### Deposit
+#### Deposit
 Emits when funds (Ether or tokens) are sent to the token contract's default function.
 ```
 event Deposit(uint256 fundsDeposited);
