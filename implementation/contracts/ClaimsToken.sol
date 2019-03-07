@@ -19,7 +19,7 @@ contract ClaimsToken is IClaimsToken, ERC20, ERC20Detailed {
 	mapping (address => uint256) public claimedFunds;
 
 
-	constructor (address _owner) 
+	constructor(address _owner) 
 		public 
 		ERC20Detailed("ClaimsToken", "CST", 18)
 	{
@@ -68,7 +68,7 @@ contract ClaimsToken is IClaimsToken, ERC20, ERC20Detailed {
 	 * @dev Get cumulative funds received by ClaimsToken.
 	 * @return A uint256 representing the total funds received by ClaimsToken
 	 */
-	function totalReceivedFunds () 
+	function totalReceivedFunds() 
 		external 
 		view 
 		returns (uint256) 

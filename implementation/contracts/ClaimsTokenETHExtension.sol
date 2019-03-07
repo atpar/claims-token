@@ -6,7 +6,7 @@ import "./ClaimsToken.sol";
 
 contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {
 
-	constructor (address _owner) 
+	constructor(address _owner) 
 		public 
 		ClaimsToken(_owner)
 	{}
