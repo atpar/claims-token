@@ -192,6 +192,12 @@ Step | balance Alice | balance Bob | funds available Alice | funds available Bob
 
 The Claims Token accounting system works in the background to take care of the fact that Alice's claims fraction changes and Bob sends his tokens away before withdrawing his available funds.
 
+## Backwards Compatibility
+The standard is backwards compatible with ERC20 tokens.
+
+## Copyright
+Public domain via [CC0](https://creativecommons.org/publicdomain/zero/1.0/deed.en)
+
 ## Attribution
 The idea for the implementation of the claims token goes back to work originally done by [@Georgi87](https://github.com/Georgi87), [@ethers](https://github.com/ethers), [@miladmostavi](https://github.com/miladmostavi) and [@popra](https://github.com/popra) and was used in the [Tokit SingularDTVFund](https://github.com/Digital-Mob/singulardtv-tokitio-contracts) contracts.
 
