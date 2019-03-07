@@ -17,13 +17,12 @@ require: ERC-20 (#20), ERC-223 (#223)
 ## Simple Summary
 A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. Anyone can deposit funds, token holders can withdraw their claims.
 
+- Very simple interface
 - ERC-20 backwards compatible
 - Supports funds in Ether or in ERC223 compatible tokens
-- Very simple interface
 - Efficient handling of fractional ownership of cash-flow claims
 - Correctly distributes cash flow honoring all token transfers
 - Scales well to many token holders and frequent transfers
-- Total supply must be fixed
 
 ## Abstract
 ![The Claims Token](res/ClaimsToken.png)
@@ -105,12 +104,17 @@ function withdrawFunds() external payable;
 A field that stores a reference to the token used for the funds. In case of funds in Ether, the field must be set to `0x0`.
 
 ### Events
-There is only one additional event.
 
-#### Deposit
-Emits when funds (Ether or tokens) are sent to the token contract's default function.
+#### FundsReceived
+Emits when funds (Ether or tokens) are sent to the token contract's default/fallback function.
 ```
-event Deposit(uint256 fundsDeposited);
+event FundsReceived(address indexed from, uint256 fundsReceived);
+```
+
+#### FundsWithdrawn
+Emits when a token holder claims funds from the token contract.
+```
+event FundsWithdrawn(address indexed by, uint256 fundsWithdrawn);
 ```
 
 ## Interface
@@ -119,8 +123,20 @@ event Deposit(uint256 fundsDeposited);
 /// @dev See https://github.com/atpar/claims-token
 
 interface IClaimsToken {
-
-	event Deposit(uint256 fundsDeposited);
+	
+	/**
+	 * @dev This event emits when funds to be deposited are sent to the token contract
+	 * @param from contains the address of the sender of the received funds
+	 * @param receivedFunds contains the amount of funds received for distribution
+	 */
+	event FundsReceived(address indexed from, uint256 fundsReceived);
+	
+	/**
+	 * @dev This event emits when distributed funds are withdrawn by a token holder.
+	 * @param by contains the address of the receiver of funds
+	 * @param fundsWithdrawn contains the amount of funds that were withdrawn
+	 */
+	event FundsWithdrawn(address indexed by, uint256 fundsWithdrawn);
 	
 	/**
 	 * @dev Withdraws available funds for user.
@@ -136,9 +152,9 @@ interface IClaimsToken {
 
 	/**
 	 * @dev Get cumulative funds received by ClaimsToken.
-	 * @return A uint256 representing the total funds received by ClaimsToken
+	 * @return A uint256 representing the cumulative funds received
 	 */
-	function totalReceivedFunds () external view returns (uint256);
+	function totalReceivedFunds() external view returns (uint256);
 }
 
 ```
