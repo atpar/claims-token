@@ -40,14 +40,16 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 	/**
 	 * @dev For ERC223.
 	 * Calls _registerFunds(), whereby total received funds (cumulative) gets updated.
+	 * @param _sender Sender of tokens
 	 * @param _value Amount of tokens
 	 */
-	function tokenFallback (address, uint256 _value, bytes memory) 
+	function tokenFallback (address _sender, uint256 _value, bytes memory) 
 		public 
 		onlyFundsToken()
 	{
 		if (_value > 0) {
 			_registerFunds(_value);
+			emit FundsReceived(_sender, _value);
 		}
 	}
 }

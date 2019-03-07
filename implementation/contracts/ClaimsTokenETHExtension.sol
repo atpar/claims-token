@@ -33,6 +33,7 @@ contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {
 	{
 		if (msg.value > 0) {
 			_registerFunds(msg.value);
+			emit FundsReceived(msg.sender, msg.value);
 		}
 	}
 }
