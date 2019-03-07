@@ -19,6 +19,9 @@ contract ClaimsToken is IClaimsToken, ERC20, ERC20Detailed {
 	mapping (address => uint256) public claimedFunds;
 
 
+	uint256 public lostFunds;
+
+
 	constructor(address _owner) 
 		public 
 		ERC20Detailed("ClaimsToken", "CST", 18)
@@ -120,6 +123,19 @@ contract ClaimsToken is IClaimsToken, ERC20, ERC20Detailed {
 	function _claimFunds(address _forAddress) internal {
 		uint256 unprocessedFunds = _calcUnprocessedFunds(_forAddress);
 
+		/// 
+		
+		uint256 newReceivedFunds = receivedFunds.sub(processedFunds[_forAddress]);
+		uint256 a = balanceOf(_forAddress).mul(newReceivedFunds);
+
+		if (a.mod(totalSupply()) >= totalSupply()/2) { 
+			claimedFunds[_forAddress] += 1; 
+		} else if (a.mod(totalSupply()) == totalSupply()/2) { 
+			lostFunds += 1;
+		}
+
+		///
+
 		processedFunds[_forAddress] = receivedFunds;
 		claimedFunds[_forAddress] = claimedFunds[_forAddress].add(unprocessedFunds);
 	}
@@ -135,6 +151,22 @@ contract ClaimsToken is IClaimsToken, ERC20, ERC20Detailed {
 		returns (uint256)
 	{
 		uint256 withdrawableFunds = availableFunds(msg.sender);
+
+
+		/// 
+		
+		uint256 newReceivedFunds = receivedFunds.sub(processedFunds[msg.sender]);
+		uint256 a = balanceOf(msg.sender).mul(newReceivedFunds);
+
+		if (a.mod(totalSupply()) > totalSupply()/2) { 
+			withdrawableFunds += 1; 
+		} 
+		else if (a.mod(totalSupply()) == totalSupply()/2) { 
+			lostFunds += 1;
+		}
+
+		///
+
 
 		processedFunds[msg.sender] = receivedFunds;
 		claimedFunds[msg.sender] = 0;

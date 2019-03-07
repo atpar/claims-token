@@ -19,6 +19,8 @@ contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {
 		payable 
 	{
 		uint256 withdrawableFunds = _prepareWithdraw();
+
+		emit FundsWithdrawn(msg.sender, withdrawableFunds);
 		
 		msg.sender.transfer(withdrawableFunds);
 	}
