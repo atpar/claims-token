@@ -17,13 +17,13 @@ require: ERC-20 (#20), ERC-223 (#223)
 ## Simple Summary
 A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. 
 
+- ERC-20 backwards compatible
+- Supports funds in Ether or in ERC223 compatible tokens
+- Very simple interface
 - Efficient handling of fractional ownership of cash-flow claims
 - Correctly distributes cash flow honoring all token transfers
 - Scales well to many token holders and frequent transfers
-- Fully ERC-20 compliant
-- Supports funds in Ether or in ERC223 compatible tokens
-- Total supply must be immutable
-
+- Total supply must be fixed
 
 ## Abstract
 ![The Claims Token](res/ClaimsToken.png)
@@ -50,7 +50,8 @@ Now Alice sends 50 tokens to Bob. Shortly after the bond yield another 10 Ether.
 
 Executing tokenized financial contracts on a public ledger requires standards for distribution of cash flow incurred by the asset. In discussions with issuers the following requirements have been collected.
 
-- MUST be ERC-20 compatible.
+- Token MUST be ERC-20 compatible
+- MUST be support claims in tokens or Ether
 - MUST support a large number of token holders that hold claims on an assets cash flow
 - MUST support efficient withdrawal of available funds
 - MUST support efficient addition of funds to be distributed
@@ -66,13 +67,12 @@ The following requirements MUST be met in order to use the claims token standard
 - IF the funds are payed in ERC20 tokens (and not in Ether), this token MUST comply to ERC223
 
 
-
 ## Specification
 
 ### Methods
 
 #### default function
-The default function behaves differently if Ether or tokens are sent to the contract.
+Anyone can send Ether or tokens to be distributed among token holders. The default/fallback function behaves differently if Ether or tokens are sent to the contract.
 
 In case of funds in Ether any Ether sent to the contract will be added to the fund by the default function.
 
@@ -103,6 +103,15 @@ function withdrawFunds() external payable;
 
 ### fundsToken
 A field that stores a reference to the token used for the funds. In case of funds in Ether, the field must be set to `0x0`.
+
+## Events
+There is only one additional event.
+
+### Deposit
+Emits when funds (Ether or tokens) are sent to the token contract's default function.
+```
+event Deposit(uint256 fundsDeposited);
+```
 
 ## Interface
 ```
