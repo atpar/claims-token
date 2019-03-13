@@ -81,21 +81,21 @@ In case of funds in ERC20/223 tokens the token that is registered will be added 
 #### totalReceivedFunds
 The monotonously rising cumulative sum of funds received since the creation of the token. This number is the amount that the contract has had available for distribution so far.
 
-```
+```Solidity
 totalReceivedFunds() external view returns (uint256);
 ```
 
 #### availableFunds
 Returns the amount of funds that can be withdrawn by a current or former token holder given as the `_address` parameter.
 
-```
+```Solidity
 availableFunds(address _address) external view returns (uint256);
 ```
 
 #### withdrawFunds
 Withdraws the funds the message sender is entitled to at the time of execution of the function.
 
-```
+```Solidity
 function withdrawFunds() external payable;
 ```
 
@@ -107,18 +107,18 @@ A field that stores a reference to the token used for the funds. In case of fund
 
 #### FundsReceived
 Emits when funds (Ether or tokens) are sent to the token contract's default/fallback function.
-```
+```Solidity
 event FundsReceived(address indexed from, uint256 fundsReceived);
 ```
 
 #### FundsWithdrawn
 Emits when a token holder claims funds from the token contract.
-```
+```Solidity
 event FundsWithdrawn(address indexed by, uint256 fundsWithdrawn);
 ```
 
 ## Interface
-```
+```Solidity
 /// @title IERCxxxx Claims Token Standard
 /// @dev See https://github.com/atpar/claims-token
 
@@ -163,8 +163,8 @@ interface IClaimsToken {
 
 The reference implementation consists of the accounting contract and two specializations. The first is for funds denoted in Ether and the second is for funds denoted in ERC20/ERC223 compatible tokens.
 
-- [Reference implementation for cash flow in ERC20/ERC223 tokens](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
-- [Reference implementation for cash flow in Ether](https://github.com/atpar/claims-token/blob/EIP-DRAFT/contracts/ClaimsTokenETHExtension.sol)
+- [Reference implementation for cash flow in ERC20/ERC223 tokens](https://github.com/atpar/claims-token/blob/master/implementation/contracts/ClaimsTokenERC20Extension.sol)
+- [Reference implementation for cash flow in Ether](https://github.com/atpar/claims-token/blob/master/implementation/contracts/ClaimsTokenETHExtension.sol)
 
 The claims token is realized by implementing the transfer functions to do the necessary accounting on two additional mappings (`processedFunds` & `claimedFunds`). A `uint256` is introduced to track the total amount of funds sent to the token contract (`receivedFunds`).
 
