@@ -7,12 +7,12 @@ discussions-to: #xxxx
 status: Draft  
 type: Standards Track  
 category: ERC  
-created: 2019-03-01  
-require: ERC-20 (#20), ERC-223 (#223)  
+created: 2019-03-13 
+requires: ERC-20 (#20), ERC-223 (#223)  
 
 ---
 
-# DRAFT! Claims Token EIP
+# Claims Token EIP
 
 ## Simple Summary
 A standard for a token that represents claims on future cash flow of an asset such as dividends, loan repayments, fee or revenue shares among large numbers of token holders. Anyone can deposit funds, token holders can withdraw their claims.
