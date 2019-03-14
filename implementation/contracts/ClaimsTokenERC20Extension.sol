@@ -34,7 +34,7 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 
 		uint256 withdrawableFunds = _prepareWithdraw();
 		
-		fundsToken.transfer(msg.sender, withdrawableFunds);
+		require(fundsToken.transfer(msg.sender, withdrawableFunds), "TRANSFER_FAILED");
 	}
 
 	/**
