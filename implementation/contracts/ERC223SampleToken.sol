@@ -25,12 +25,14 @@ contract ERC223SampleToken is ERC20 {
 
 		assembly { codeLength := extcodesize(_to) }
 
-		super.transfer(_to, _value);
+		require(super.transfer(_to, _value), "TRANFER_FAILED");
 		
 		if(codeLength > 0) {
 			ERC223ReceivingContract receiver = ERC223ReceivingContract(_to);
 			receiver.tokenFallback(msg.sender, _value, _data);
 		}
+
+		return true;
 	}
 	
 	function transfer(address _to, uint256 _value) 
@@ -42,11 +44,13 @@ contract ERC223SampleToken is ERC20 {
 
 		assembly { codeLength := extcodesize(_to) }
 
-		super.transfer(_to, _value);
+		require(super.transfer(_to, _value), "TRANFER_FAILED");
 
 		if(codeLength > 0) {
 			ERC223ReceivingContract receiver = ERC223ReceivingContract(_to);
 			receiver.tokenFallback(msg.sender, _value, empty);
 		}
+
+		return true;
 	}
 }
