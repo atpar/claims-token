@@ -14,9 +14,9 @@ contract ClaimsTokenERC223Extension is IClaimsToken, ClaimsToken {
 		_;
 	}
 
-	constructor(address _owner, IERC20 _fundsToken) 
+	constructor(IERC20 _fundsToken) 
 		public 
-		ClaimsToken(_owner)
+		ClaimsToken()
 	{
 		require(address(_fundsToken) != address(0));
 
@@ -39,17 +39,17 @@ contract ClaimsTokenERC223Extension is IClaimsToken, ClaimsToken {
 
 	/**
 	 * @dev For ERC223.
-	 * Calls _registerFunds(), whereby total received funds (cumulative) gets updated.
-	 * @param _sender Sender of tokens
-	 * @param _value Amount of tokens
+	 * Calls _registerFunds(), whereby magnifiedFundsPerShare gets updated.
+	 * @param sender Sender of tokens
+	 * @param value Amount of tokens
 	 */
-	function tokenFallback(address _sender, uint256 _value, bytes memory) 
+	function tokenFallback(address sender, uint256 value, bytes memory) 
 		public 
 		onlyFundsToken()
 	{
-		if (_value > 0) {
-			_registerFunds(_value);
-			emit FundsReceived(_sender, _value);
+		if (value > 0) {
+			_distributeFunds(value);
+			emit FundsDistributed(sender, value);
 		}
 	}
 }

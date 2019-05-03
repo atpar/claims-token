@@ -1,136 +1,532 @@
-const BigNumber = require('bignumber.js')
+const { BN, constants, ether, balance, expectEvent, shouldFail } = require('openzeppelin-test-helpers');
+const { ZERO_ADDRESS } = constants;
 
-const ClaimsToken = artifacts.require('ClaimsTokenETHExtension')
+const ClaimsTokenETHExtension = artifacts.require('ClaimsTokenETHExtension');
+
+contract('ClaimsTokenETHExtension', function (accounts) {
+  const [owner, tokenHolder1, tokenHolder2, tokenHolder3, anyone] = accounts;
+  const gasPrice = new BN('1');
+
+  // before each `it`, even in `describe`
+  beforeEach(async function () {
+    this.claimsToken = await ClaimsTokenETHExtension.new();
+  });
+
+  describe('mint', function () {
+    describe('when someone other than the owner tries to mint tokens', function () {
+      it('reverts', async function () {
+        await shouldFail.reverting(
+          this.claimsToken.mint(anyone, ether('1'), {from: anyone})
+        );
+      });
+    });
+
+    describe('when the contract owner tries to mint tokens', function () {
+      describe('when the recipient is the zero address', function () {
+        it('reverts', async function () {
+          await shouldFail.reverting(
+            this.claimsToken.mint(ZERO_ADDRESS, ether('1'), {from: owner})
+          );
+        });
+      });
+
+      describe('when the recipient is not the zero address', function () {
+        it('mint tokens to the recipient', async function () {
+          await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+
+          (await this.claimsToken.balanceOf(tokenHolder1)).should.be.bignumber.equal(ether('1'));
+          (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+          (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+          (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+        });
+      });
+    });
+  });
+
+  describe('sending funds', function () {
+    describe('when anyone tries to pay and distribute funds', function () {
+      describe('when the total supply is 0', function () {
+        it('reverts', async function () {
+          await shouldFail.reverting(
+            web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')})
+          );
+        });
+      });
+
+      describe('when paying 0 ether', function () {
+        it('should succeed but nothing happens', async function () {
+          await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+
+          // await this.claimsToken.distributeFunds({from: anyone, value: ether('0')});
+          await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('0')});
+
+          (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+          (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+          (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+        });
+      });
+
+      describe('when the total supply is not 0', function () {
+        it('should pay and distribute funds to token holders', async function () {
+          await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+          await this.claimsToken.mint(tokenHolder2, ether('3'), {from: owner});
+
+          // const { logs } = await this.claimsToken.sendTransaction({from: anyone, value: ether('1')});
+          // await expectEvent.inLogs(logs, 'FundsDistributed', {
+          //     from: anyone,
+          //     weiAmount: ether('1'),
+          //   }
+          // );
+          const { logs } = await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')});
+          // await expectEvent.inLogs(logs, 'FundsDistributed', {
+          //   by: anyone,
+          //   fundsDistributed: ether('1'),
+          // });
 
 
-contract('ClaimsTokenETH', (accounts) => {
+          (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+          (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+          (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
 
-  const ownerA = accounts[0]
-  const ownerB = accounts[1]
-  const ownerC = accounts[2]
-  const ownerD = accounts[3]
-  
-  const payer = accounts[4]
+          (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0.75'));
+          (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0.75'));
+          (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+        });
+      });
+    });
 
-  const depositAmount = 100 * 10 ** 18
+    describe('when anyone tries to pay and distribute funds by sending ether to the contract', function () {
+      describe('when the total supply is 0', function () {
+        it('reverts', async function () {
+          await shouldFail.reverting(
+            web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')})
+          );
+        });
+      });
 
-  beforeEach(async () => {
-    this.ClaimsTokenInstance = await ClaimsToken.new(ownerA)
-    this.totalSupply = await this.ClaimsTokenInstance.totalSupply()
+      describe('when paying 0 ether', function () {
+        it('should succeed but nothing happens', async function () {
+          await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
 
-    await this.ClaimsTokenInstance.transfer(ownerB, this.totalSupply.divn(4))
-    await this.ClaimsTokenInstance.transfer(ownerC, this.totalSupply.divn(4))
-    await this.ClaimsTokenInstance.transfer(ownerD, this.totalSupply.divn(4))
+          // await this.claimsToken.sendTransaction({from: anyone, value: ether('0')});
+          await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('0')});
 
-    await web3.eth.sendTransaction({
-      from: payer,
-      to: this.ClaimsTokenInstance.address,
-      value: depositAmount
-    })
-  })
+          (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+          (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+          (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+        });
+      });
 
-  it('should increment <totalReceivedFunds> after deposit', async () => {
-    const claimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
-    const totalReceivedFunds = await this.ClaimsTokenInstance.totalReceivedFunds()
+      describe('when the total supply is not 0', function () {
+        it('should pay and distribute funds to token holders', async function () {
+          await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+          await this.claimsToken.mint(tokenHolder2, ether('3'), {from: owner});
 
-    assert.equal(claimsTokenBalance, totalReceivedFunds)
-  })
+          // const { logs } = await this.claimsToken.sendTransaction({from: anyone, value: ether('1')});
+          // await expectEvent.inLogs(logs, 'FundsDistributed', {
+          //     from: anyone,
+          //     weiAmount: ether('1'),
+          //   }
+          // );
+          const { logs } = await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')});
+          // await expectEvent.inLogs(logs, 'FundsDistributed', {
+          //   by: anyone,
+          //   fundsDistributed: ether('1'),
+          // });
 
-  it('should withdraw <newFundsReceived> amount for user', async () => {
-    const totalReceivedFunds = await this.ClaimsTokenInstance.totalReceivedFunds()
-    const preClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+          (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+          (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0.75'));
+        });
+      });
+    });
+  });
 
-    await this.ClaimsTokenInstance.withdrawFunds({ from: ownerD })
+  describe('transfer', function () {
+    beforeEach(async function () {
+      await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+    });
 
-    const postClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+    describe('when the recipient is the zero address', function () {
+      it('reverts', async function () {
+        await shouldFail.reverting(
+          this.claimsToken.transfer(ZERO_ADDRESS, ether('0.5'), {from: tokenHolder1})
+        );
+      });
+    });
 
-    assert.equal(preClaimsTokenBalance - (totalReceivedFunds / 4), postClaimsTokenBalance)    
-  })
+    describe('when the recipient is not the zero address', function () {
+      describe('when the sender does not have enough balance', function () {
+        it('reverts', async function () {
+          await shouldFail.reverting(
+            this.claimsToken.transfer(tokenHolder2, ether('2'), {from: tokenHolder1})
+          );
+        });
+      });
 
-  it('should withdraw <claimedToken> amount for new owner after token transfer', async () => {
-    const totalReceivedFunds = await this.ClaimsTokenInstance.totalReceivedFunds()
-    const tokenBalanceOfOwnerA = await this.ClaimsTokenInstance.balanceOf(ownerA)
+      describe('when the sender has enough balance', function () {
+        it('transfers the requested amount', async function () {
+          await this.claimsToken.transfer(tokenHolder2, ether('0.25'), {from: tokenHolder1});
 
-    const preClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+          (await this.claimsToken.balanceOf(tokenHolder1)).should.be.bignumber.equal(ether('0.75'));
+          (await this.claimsToken.balanceOf(tokenHolder2)).should.be.bignumber.equal(ether('0.25'));
+          });
 
-    await this.ClaimsTokenInstance.transfer(ownerD, tokenBalanceOfOwnerA.divn(2))
+        it('emits a transfer event', async function () {
+          const { logs } = await this.claimsToken.transfer(tokenHolder2, ether('0.25'), {from: tokenHolder1});
 
-    // console.log((await this.ClaimsTokenInstance.claimedFunds(ownerD)).toString())
-    // console.log((await this.ClaimsTokenInstance.processedFunds(ownerD)).toString())
+          expectEvent.inLogs(logs, 'Transfer', {
+            from: tokenHolder1,
+            to: tokenHolder2,
+            value: ether('0.25'),
+          });
+        });
+      });
+    });
+  });
 
-    await this.ClaimsTokenInstance.withdrawFunds({ from: ownerD })
+  describe('transfer from', function () {
+    const mintAmount = ether('9');
+    const approveAmount = ether('3');
+    const transferAmount = ether('1');
+    const spender = anyone;
 
-    const postClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+    beforeEach(async function () {
+      await this.claimsToken.mint(tokenHolder1, mintAmount, {from: owner});
+    });
 
-    assert.equal(preClaimsTokenBalance - (totalReceivedFunds / 4), postClaimsTokenBalance)    
-  })
+    describe('when the recipient is not the zero address', function () {
+      describe('when the spender has enough approved balance', function () {
+        beforeEach(async function () {
+          await this.claimsToken.approve(spender, approveAmount, { from: tokenHolder1 });
+        });
 
-  it('should withdraw <claimedFunds> amount for previous owner after token transfer', async () => {
-    const totalReceivedFunds = await this.ClaimsTokenInstance.totalReceivedFunds()
-    const tokenBalanceOfOwnerA = await this.ClaimsTokenInstance.balanceOf(ownerA)
+        describe('when the initial holder has enough balance', function () {
+          let logs;
 
-    const preClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+          beforeEach(async function () {
+            const receipt = await this.claimsToken.transferFrom(tokenHolder1, tokenHolder2, transferAmount, { from: spender });
+            logs = receipt.logs;
+          });
 
-    await this.ClaimsTokenInstance.transfer(ownerD, tokenBalanceOfOwnerA.divn(2))
-    await this.ClaimsTokenInstance.withdrawFunds({ from: ownerA })
+          it('transfers the requested amount', async function () {
+            (await this.claimsToken.balanceOf(tokenHolder1)).should.be.bignumber.equal( mintAmount.sub(transferAmount) );
+            (await this.claimsToken.balanceOf(tokenHolder2)).should.be.bignumber.equal( transferAmount );
+          });
 
-    const postClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+          it('decreases the spender allowance', async function () {
+            (await this.claimsToken.allowance(tokenHolder1, spender)).should.be.bignumber.equal( approveAmount.sub(transferAmount) );
+          });
 
-    assert.equal(preClaimsTokenBalance - (totalReceivedFunds / 4), postClaimsTokenBalance)    
-  })
+          it('emits a transfer event', async function () {
+            expectEvent.inLogs(logs, 'Transfer', {
+              from: tokenHolder1,
+              to: tokenHolder2,
+              value: transferAmount,
+            });
+          });
 
-  it('should withdraw <claimedFunds> + <newFundsReceived> amount for user after token transfer and second deposit', async () => {
-    const tokenBalanceOfOwnerA = await this.ClaimsTokenInstance.balanceOf(ownerA)
-    const preClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
-    const preTotalReceivedFunds = await this.ClaimsTokenInstance.totalReceivedFunds()
+          it('emits an approval event', async function () {
+            expectEvent.inLogs(logs, 'Approval', {
+              owner: tokenHolder1,
+              spender: spender,
+              value: approveAmount.sub(transferAmount),
+            });
+          });
+        });
 
-    await this.ClaimsTokenInstance.transfer(ownerD, tokenBalanceOfOwnerA.divn(2))
-    
-    await web3.eth.sendTransaction({
-      from: payer,
-      to: this.ClaimsTokenInstance.address,
-      value: depositAmount
-    })
+        describe('when the initial holder does not have enough balance', function () {
+          const _approveAmount = mintAmount.addn(1);
+          const _transferAmount = _approveAmount;
 
-    await this.ClaimsTokenInstance.withdrawFunds({ from: ownerD })
+          beforeEach(async function () {
+            await this.claimsToken.approve(spender, _approveAmount, { from: tokenHolder1 });
+          });
 
-    const postClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+          it('reverts', async function () {
+            await shouldFail.reverting(this.claimsToken.transferFrom(tokenHolder1, tokenHolder2, _transferAmount, { from: spender }));
+          });
+        });
+      });
 
-    const claimedFunds = preTotalReceivedFunds / 4
-    const newReceivedFundsFraction = depositAmount / 4 + (depositAmount / 4) / 2
-  
-    assert.equal((Number(preClaimsTokenBalance) + depositAmount) - (claimedFunds + newReceivedFundsFraction), postClaimsTokenBalance)
-  })
+      describe('when the spender does not have enough approved balance', function () {
+        beforeEach(async function () {
+          await this.claimsToken.approve(spender, approveAmount, { from: tokenHolder1 });
+        });
 
-  it('should withdraw <claimedFunds> + <newFundsReceived> for user after token transfers from multiple parties and second deposit', async () => {
-    const preClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
+        describe('when the initial holder has enough balance', function () {
+          const _transferAmount = approveAmount.addn(1);
 
-    const tokenBalanceOfOwnerA = await this.ClaimsTokenInstance.balanceOf(ownerA)
-    const tokenBalanceOfOwnerB = await this.ClaimsTokenInstance.balanceOf(ownerB)
-    const tokenBalanceOfOwnerC = await this.ClaimsTokenInstance.balanceOf(ownerC)
-    const tokenBalanceOfOwnerD = await this.ClaimsTokenInstance.balanceOf(ownerD)
+          it('reverts', async function () {
+            await shouldFail.reverting(this.claimsToken.transferFrom(tokenHolder1, tokenHolder2, _transferAmount, { from: spender }));
+          });
+        });
 
-    await this.ClaimsTokenInstance.transfer(ownerA, tokenBalanceOfOwnerB.divn(2), { from: ownerB }) // 12.5
-    await this.ClaimsTokenInstance.transfer(ownerA, tokenBalanceOfOwnerC.divn(3), { from: ownerC }) // 8.33333333333333
-    
-    const expectedPreTokenBalanceOfOwnerA = tokenBalanceOfOwnerA.add(tokenBalanceOfOwnerB.divn(2).add(tokenBalanceOfOwnerC.divn(3)))
+        describe('when the initial holder does not have enough balance', function () {
+          const _transferAmount = mintAmount.addn(1);
 
-    await web3.eth.sendTransaction({
-      from: payer,
-      to: this.ClaimsTokenInstance.address,
-      value: depositAmount
-    })
+          it('reverts', async function () {
+            await shouldFail.reverting(this.claimsToken.transferFrom(tokenHolder1, tokenHolder2, _transferAmount, { from: spender }));
+          });
+        });
+      });
+    });
 
-    await this.ClaimsTokenInstance.transfer(ownerA, tokenBalanceOfOwnerD.divn(4), { from: ownerD }) // 6.25
+    describe('when the recipient is the zero address', function () {
+      beforeEach(async function () {
+        await this.claimsToken.approve(spender, approveAmount, { from: tokenHolder1 });
+      });
 
-    await this.ClaimsTokenInstance.withdrawFunds({ from: ownerA })
+      it('reverts', async function () {
+        await shouldFail.reverting(this.claimsToken.transferFrom(tokenHolder1, ZERO_ADDRESS, transferAmount, { from: spender }));
+      });
+    });
+  });
 
-    const expectedFractionOfTotalSupplyOfOwnerA = new BigNumber(expectedPreTokenBalanceOfOwnerA).div(this.totalSupply)
-    const expectedAmountWithdrawnByOwnerA = new BigNumber(depositAmount).dividedBy(4).plus(expectedFractionOfTotalSupplyOfOwnerA.multipliedBy(depositAmount))
-    const expectedPostClaimsTokenBalance = new BigNumber(depositAmount).plus(preClaimsTokenBalance).minus(expectedAmountWithdrawnByOwnerA)
+  describe('withdrawFunds', function () {
+    it('should be able to withdraw funds', async function () {
+      await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+      await this.claimsToken.mint(tokenHolder2, ether('3'), {from: owner});
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('1')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')});
 
-    const postClaimsTokenBalance = await web3.eth.getBalance(this.ClaimsTokenInstance.address)
-    
-    assert.equal(expectedPostClaimsTokenBalance.toString(), postClaimsTokenBalance)
-  })
-})
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+
+      const balance1 = await balance.current(tokenHolder1);
+      const receipt = await this.claimsToken.withdrawFunds({from: tokenHolder1, gasPrice: gasPrice});
+      expectEvent.inLogs(receipt.logs, 'FundsWithdrawn', {
+          by: tokenHolder1,
+          fundsWithdrawn: ether('0.25'),
+        }
+      );
+
+      const balance2 = await balance.current(tokenHolder1);
+      const fee = gasPrice.mul(new BN(receipt.receipt.gasUsed));
+      balance2.should.be.bignumber.equal( balance1.add(ether('0.25')).sub(fee) );
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+
+      // withdraw again. should succeed and withdraw nothing
+      const receipt2 = await this.claimsToken.withdrawFunds({from: tokenHolder1, gasPrice: gasPrice});
+      const balance3 = await balance.current(tokenHolder1);
+      const fee2 = gasPrice.mul(new BN(receipt2.receipt.gasUsed));
+      balance3.should.be.bignumber.equal( balance2.sub(fee2));
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+    });
+  });
+
+  describe('keep funds unchanged in several cases', function () {
+    it('should keep funds unchanged after minting tokens', async function () {
+      await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+      await this.claimsToken.mint(tokenHolder2, ether('3'), {from: owner});
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('1')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')});
+
+      await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+    });
+
+    it('should keep funds unchanged after transferring tokens', async function () {
+      await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+      await this.claimsToken.mint(tokenHolder2, ether('3'), {from: owner});
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('1')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')});
+
+      await this.claimsToken.transfer(tokenHolder2, ether('1'), {from: tokenHolder1});
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0.75'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0.75'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+    });
+
+    it('should keep funds unchanged after transferFrom', async function () {
+      await this.claimsToken.mint(tokenHolder1, ether('1'), {from: owner});
+      await this.claimsToken.mint(tokenHolder2, ether('3'), {from: owner});
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('1')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('1')});
+
+      await this.claimsToken.approve(tokenHolder3, ether('1'), {from: tokenHolder1});
+      await this.claimsToken.transferFrom(tokenHolder1, tokenHolder2, ether('1'), {from: tokenHolder3});
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0.25'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0.75'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0.75'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+    });
+
+    it('should correctly distribute funds after transferring tokens', async function () {
+      await this.claimsToken.mint(tokenHolder1, ether('2'), {from: owner});
+      await this.claimsToken.mint(tokenHolder2, ether('3'), {from: owner});
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('5')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('5')});
+
+      await this.claimsToken.transfer(tokenHolder2, ether('1'), {from: tokenHolder1});
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('50')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('50')});
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('12'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('12'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('43'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('43'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+    });
+  });
+
+  describe('end-to-end test', function () {
+    it('should pass end-to-end test', async function () {
+      let balanceBefore;
+      let balanceAfter;
+      let receipt;
+      let fee;
+
+      // mint and distributeFunds
+      await this.claimsToken.mint(tokenHolder1, ether('2'), {from: owner});
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('10')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('10')});
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+
+      // transfer
+      await this.claimsToken.transfer(tokenHolder2, ether('2'), {from: tokenHolder1});
+      (await this.claimsToken.balanceOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.balanceOf(tokenHolder2)).should.be.bignumber.equal(ether('2'));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+
+      // tokenHolder1 withdraw
+      balanceBefore = await balance.current(tokenHolder1);
+      receipt = await this.claimsToken.withdrawFunds({from: tokenHolder1, gasPrice: gasPrice});
+      balanceAfter = await balance.current(tokenHolder1);
+      fee = gasPrice.mul(new BN(receipt.receipt.gasUsed));
+      balanceAfter.should.be.bignumber.equal( balanceBefore.add(ether('10')).sub(fee));
+      
+
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+
+      // deposit
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('10')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('10')});
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+
+      // mint
+      await this.claimsToken.mint(tokenHolder1, ether('3'), {from: owner});
+      (await this.claimsToken.balanceOf(tokenHolder1)).should.be.bignumber.equal(ether('3'));
+
+      // deposit
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('10')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('10')});
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('16'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('6'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('14'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('14'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+
+      // now tokens: 3, 2
+
+      await this.claimsToken.transfer(tokenHolder3, ether('2'), {from: tokenHolder2});
+
+      // 3, 0, 2
+
+      await this.claimsToken.mint(tokenHolder2, ether('4'), {from: owner});
+      await this.claimsToken.mint(tokenHolder3, ether('1'), {from: owner});
+
+      // 3 4 3
+
+      await this.claimsToken.transfer(tokenHolder1, ether('2'), {from: tokenHolder2});
+
+      // 5 2 3
+
+      await this.claimsToken.transfer(tokenHolder3, ether('5'), {from: tokenHolder1});
+
+      // 0 2 8
+
+      await this.claimsToken.transfer(tokenHolder2, ether('2'), {from: tokenHolder3});
+
+      // 0 4 6
+
+      await this.claimsToken.transfer(tokenHolder1, ether('3'), {from: tokenHolder2});
+
+      // 3, 1, 6
+
+      (await this.claimsToken.balanceOf(tokenHolder1)).should.be.bignumber.equal(ether('3'));
+      (await this.claimsToken.balanceOf(tokenHolder2)).should.be.bignumber.equal(ether('1'));
+      (await this.claimsToken.balanceOf(tokenHolder3)).should.be.bignumber.equal(ether('6'));
+
+      // deposit
+      // await this.claimsToken.distributeFunds({from: anyone, value: ether('10')});
+      await web3.eth.sendTransaction({from: anyone, to: this.claimsToken.address, value: ether('10')});
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('19'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('9'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('10'));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('15'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('15'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder3)).should.be.bignumber.equal(ether('6'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder3)).should.be.bignumber.equal(ether('6'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder3)).should.be.bignumber.equal(ether('0'));
+
+
+      // tokenHolder1 withdraw
+      balanceBefore = await balance.current(tokenHolder1);
+      receipt = await this.claimsToken.withdrawFunds({from: tokenHolder1, gasPrice: gasPrice});
+      balanceAfter = await balance.current(tokenHolder1);
+      fee = gasPrice.mul(new BN(receipt.receipt.gasUsed));
+      balanceAfter.should.be.bignumber.equal( balanceBefore.add(ether('9')).sub(fee));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('19'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder1)).should.be.bignumber.equal(ether('19'));
+
+      // tokenHolder2 withdraw
+      balanceBefore = await balance.current(tokenHolder2);
+      receipt = await this.claimsToken.withdrawFunds({from: tokenHolder2, gasPrice: gasPrice});
+      balanceAfter = await balance.current(tokenHolder2);
+      fee = gasPrice.mul(new BN(receipt.receipt.gasUsed));
+      balanceAfter.should.be.bignumber.equal( balanceBefore.add(ether('15')).sub(fee));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('15'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder2)).should.be.bignumber.equal(ether('15'));
+
+      // tokenHolder3 withdraw
+      balanceBefore = await balance.current(tokenHolder3);
+      receipt = await this.claimsToken.withdrawFunds({from: tokenHolder3, gasPrice: gasPrice});
+      balanceAfter = await balance.current(tokenHolder3);
+      fee = gasPrice.mul(new BN(receipt.receipt.gasUsed));
+      balanceAfter.should.be.bignumber.equal( balanceBefore.add(ether('6')).sub(fee));
+      (await this.claimsToken.accumulativeFundsOf(tokenHolder3)).should.be.bignumber.equal(ether('6'));
+      (await this.claimsToken.withdrawableFundsOf(tokenHolder3)).should.be.bignumber.equal(ether('0'));
+      (await this.claimsToken.withdrawnFundsOf(tokenHolder3)).should.be.bignumber.equal(ether('6'));
+    });
+  });
+});

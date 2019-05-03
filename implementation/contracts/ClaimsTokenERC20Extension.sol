@@ -1,6 +1,7 @@
 pragma solidity ^0.5.2;
 
-import "openzeppelin-solidity/contracts/drafts/SignedSafeMath.sol";
+import "./math/SafeMathUint.sol";
+import "./math/SafeMathInt.sol";
 
 import "./IClaimsToken.sol";
 import "./ClaimsToken.sol";
@@ -8,7 +9,8 @@ import "./ClaimsToken.sol";
 
 contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 
-	using SignedSafeMath for int256;
+	using SafeMathUint for uint256;
+	using SafeMathInt for int256;
 
 	// token that ClaimsToken takes in custodianship 
 	IERC20 public fundsToken;
@@ -22,9 +24,9 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 		_;
 	}
 
-	constructor(address _owner, IERC20 _fundsToken) 
+	constructor(IERC20 _fundsToken) 
 		public 
-		ClaimsToken(_owner)
+		ClaimsToken()
 	{
 		require(address(_fundsToken) != address(0));
 
@@ -69,8 +71,7 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 		int256 newFunds = _updateFundsTokenBalance();
 
 		if (newFunds > 0) {
-			_registerFunds(uint256(newFunds));
-			emit FundsReceived(address(0), uint256(newFunds));
+			_distributeFunds(newFunds.toUint256Safe());
 		}
 	}
 }

@@ -6,11 +6,6 @@ import "./ClaimsToken.sol";
 
 contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {
 
-	constructor(address _owner) 
-		public 
-		ClaimsToken(_owner)
-	{}
-
 	/**
 	 * @dev Withdraws available funds for user.
 	 */
@@ -24,16 +19,16 @@ contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {
 	}
 
 	/**
-	 * @dev Calls _registerFunds(), 
-	 * whereby total received funds (cumulative) gets updated.
+	 * @dev Calls _distributeFunds(), 
+	 * whereby magnifiedFundsPerShare gets updated.
 	 */
 	function () 
 		external 
 		payable 
 	{
 		if (msg.value > 0) {
-			_registerFunds(msg.value);
-			emit FundsReceived(msg.sender, msg.value);
+			_distributeFunds(msg.value);
+			emit FundsDistributed(msg.sender, msg.value);
 		}
 	}
 }
