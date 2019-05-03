@@ -12,10 +12,10 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 	using SafeMathUint for uint256;
 	using SafeMathInt for int256;
 
-	// token that ClaimsToken takes in custodianship 
+	// token in which the funds can be sent to the ClaimsToken
 	IERC20 public fundsToken;
 	
-	// balance of funds token the ClaimsToken currently holds
+	// balance of fundsToken that the ClaimsToken currently holds
 	uint256 public fundsTokenBalance;
 
 
@@ -34,7 +34,7 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 	}
 
 	/**
-	 * @dev Withdraws available funds for user.
+	 * @notice Withdraws all available funds for a token holder
 	 */
 	function withdrawFunds() 
 		external 
@@ -63,7 +63,7 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 	}
 
 	/**
-	 * May be called directly after a deposit is made
+	 * @notice Register a payment of funds in tokens. May be called directly after a deposit is made.
 	 * @dev Calls _updateFundsTokenBalance(), whereby the contract computes the delta of the previous and the new 
 	 * funds token balance and increments the total received funds (cumulative) by delta by calling _registerFunds()
 	 */

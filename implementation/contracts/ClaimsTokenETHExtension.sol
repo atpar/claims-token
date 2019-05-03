@@ -7,7 +7,7 @@ import "./ClaimsToken.sol";
 contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {
 
 	/**
-	 * @dev Withdraws available funds for user.
+	 * @notice Withdraws available funds for user.
 	 */
 	function withdrawFunds() 
 		external 
@@ -19,8 +19,7 @@ contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {
 	}
 
 	/**
-	 * @dev Calls _distributeFunds(), 
-	 * whereby magnifiedFundsPerShare gets updated.
+	 * @notice The default function calls _distributeFunds() whereby magnifiedFundsPerShare gets updated.
 	 */
 	function () 
 		external 

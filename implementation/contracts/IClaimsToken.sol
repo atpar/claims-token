@@ -6,19 +6,19 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 interface IClaimsToken {
 
 	/**
-	 * @dev Returns the amount of funds a given address is able to withdraw currently.
+	 * @dev Returns the total amount of funds a given address is able to withdraw currently.
 	 * @param owner Address of ClaimsToken holder
 	 * @return A uint256 representing the available funds for a given account
 	 */
 	function withdrawableFundsOf(address owner) external view returns (uint256);
 
 	/**
-	 * @dev Withdraws available funds for user.
+	 * @dev Withdraws all available funds for a claims token holder.
 	 */
 	function withdrawFunds() external payable;
 
 	/**
-	 * @dev This event emits when new funds are getting distributed
+	 * @dev This event emits when new funds are distributed
 	 * @param by the address of the sender who distributed funds
 	 * @param fundsDistributed contains the amount of funds received for distribution
 	 */
@@ -29,5 +29,5 @@ interface IClaimsToken {
 	 * @param by contains the address of the receiver of funds
 	 * @param fundsWithdrawn contains the amount of funds that were withdrawn
 	 */
-	event FundsWithdrawn(address indexed by, uint256 fundsWithdrawn);	
+	event FundsWithdrawn(address indexed by, uint256 fundsWithdrawn);
 }
