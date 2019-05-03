@@ -45,7 +45,7 @@ contract ClaimsToken is IClaimsToken, ERC20Mintable {
 	 *     and try to distribute it in the next distribution ....... todo implement  
 	 */
 	function _distributeFunds(uint256 value) internal {
-		require(totalSupply() > 0);
+		require(totalSupply() > 0, "SUPPLY_IS_ZERO");
 
 		if (value > 0) {
 			pointsPerShare = pointsPerShare.add(

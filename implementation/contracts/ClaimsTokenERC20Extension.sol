@@ -28,7 +28,7 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 		public 
 		ClaimsToken()
 	{
-		require(address(_fundsToken) != address(0));
+		require(address(_fundsToken) != address(0), "INVALID_FUNDS_TOKEN_ADDRESS");
 
 		fundsToken = _fundsToken;
 	}
@@ -40,7 +40,7 @@ contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {
 		external 
 		payable 
 	{
-		require(msg.value == 0, "");
+		require(msg.value == 0, "ETHER_NOT_ACCEPTED");
 
 		uint256 withdrawableFunds = _prepareWithdraw();
 		
