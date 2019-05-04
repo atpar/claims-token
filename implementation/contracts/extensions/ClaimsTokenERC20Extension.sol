@@ -1,10 +1,10 @@
 pragma solidity ^0.5.2;
 
-import "./math/SafeMathUint.sol";
-import "./math/SafeMathInt.sol";
+import "../external/math/SafeMathUint.sol";
+import "../external/math/SafeMathInt.sol";
 
-import "./IClaimsToken.sol";
-import "./ClaimsToken.sol";
+import "../IClaimsToken.sol";
+import "../ClaimsToken.sol";
 
 
 contract ClaimsTokenERC20Extension is IClaimsToken, ClaimsToken {

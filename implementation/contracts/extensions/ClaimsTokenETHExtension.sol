@@ -1,7 +1,7 @@
 pragma solidity ^0.5.2;
 
-import "./IClaimsToken.sol";
-import "./ClaimsToken.sol";
+import "../IClaimsToken.sol";
+import "../ClaimsToken.sol";
 
 
 contract ClaimsTokenETHExtension is IClaimsToken, ClaimsToken {

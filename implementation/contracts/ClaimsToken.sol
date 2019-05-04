@@ -2,8 +2,8 @@ pragma solidity ^0.5.2;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./math/SafeMathUint.sol";
-import "./math/SafeMathInt.sol";
+import "./external/math/SafeMathUint.sol";
+import "./external/math/SafeMathInt.sol";
 
 import "./IClaimsToken.sol";
 
