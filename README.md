@@ -61,14 +61,9 @@ interface IClaimsToken is IERC20 {
 - Claims Token extension contracts
     - contains specific methods for depositing and withdrawing tokens
 
-### Flavors
-1. **Single Token Claims Token**
-    - one time instantiation of Claims Token contract with ETH / ERC20
-2. **Multi Token Claims Token**
-    - multiple tokens (ETH / ERC20) can be distributed through this contract at the same time
-    - new tokens can be added or removed during the lifecycle of the Claims Token contract
+### **Single Token Claims Token**
+- one time instantiation of Claims Token contract with ETH / ERC20
 
 ### Claims Token Extensions
 - define how depositing and withdrawing is handled
 - compatibility for different token standards (ERC20, ERC223, ERC777, ERC1400)
-
