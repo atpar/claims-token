@@ -13,10 +13,12 @@ import "./IClaimsToken.sol";
  * @author Johannes Escherich
  * @author Johannes Pfeffer
  * @dev A  mintable token that can represent claims on cash flow of arbitrary assets such as dividends, loan repayments, 
- *   fee or revenue shares among large numbers of token holders. Anyone can deposit funds, token holders can withdraw their claims.
- * Supports funds paid in Ether or an ERC20 token. Extensible to support standards like ERC777 or ERC223.
- * This file implements the base accounting. Extensions implement Ether or token specific functionality.
- * Based on EIP1726 and EIP1843. Payments accounting based on the implementation of roger-wu and foundational work of arachnid
+ * fee or revenue shares among large numbers of token holders. Anyone can deposit funds, token holders can withdraw 
+ * their claims.
+ * ClaimsToken implements the accounting logic. ClaimsToken-Extension contracts implement methods for depositing and 
+ * withdrawing funds in Ether or according to a token standard such as ERC20, ERC223, ERC777.
+ * Claims Token is a consolidation of EIP1726 and EIP1843. The Acounting logic is based on the implementation of 
+ * roger-wu (see EIP1726) and foundational work of arachnid.
  */
 contract ClaimsToken is IClaimsToken, ERC20Mintable {
 
